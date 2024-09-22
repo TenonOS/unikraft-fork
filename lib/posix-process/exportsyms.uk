@@ -83,3 +83,6 @@ uk_syscall_r_e_clone
 uk_syscall_e_e_clone
 uk_syscall_r_clone3
 uk_syscall_e_clone3
+fork
+uk_syscall_r_fork
+uk_syscall_e_fork

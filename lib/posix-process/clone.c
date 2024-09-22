@@ -38,6 +38,7 @@
 #include <string.h>
 #include <sys/prctl.h>
 #include <sys/resource.h>
+#include <linux/kvm_para.h>
 #include <uk/arch/ctx.h>
 #include <uk/plat/config.h>
 #include <uk/process.h>
@@ -528,6 +529,14 @@ int clone(int (*fn)(void *) __unused, void *sp __unused,
 	return -1;
 }
 #endif /* UK_LIBC_SYSCALLS */
+
+UK_LLSYSCALL_R_DEFINE(pid_t, fork)
+{
+	uk_pr_info("Successfully call fork\n");
+	pid_t pid = uk_syscall_r_getpid();
+	kvm_hypercall1(KVM_HC_FORK_VM, pid);
+	return pid;
+}
 
 /*
  * Checks that the CLONE_VM is set so that we make sure that
