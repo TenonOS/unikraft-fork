@@ -537,6 +537,27 @@ UK_LLSYSCALL_R_DEFINE(pid_t, fork)
 	kvm_hypercall1(KVM_HC_FORK_VM, pid);
 	return pid;
 }
+/*
+UK_LLSYSCALL_R_DEFINE(pid_t, restore_vm)
+{
+	uk_pr_info("Successfully call restore\n");
+	pid_t pid = uk_syscall_r_getpid();
+	kvm_hypercall0(KVM_HC_RESTORE_FORK);
+	return pid;
+}
+*/
+#if UK_LIBC_SYSCALLS
+pid_t fork()
+{
+	return uk_syscall_e_fork();
+}
+/*
+pid_t restore_vm()
+{
+	return uk_syscall_e_restore_vm();
+}
+*/
+#endif /* UK_LIBC_SYSCALLS */
 
 /*
  * Checks that the CLONE_VM is set so that we make sure that
