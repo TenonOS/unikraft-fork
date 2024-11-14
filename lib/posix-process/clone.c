@@ -530,12 +530,20 @@ int clone(int (*fn)(void *) __unused, void *sp __unused,
 }
 #endif /* UK_LIBC_SYSCALLS */
 
+#define FORK_MASK 0x8000000000000000ULL
+
 UK_LLSYSCALL_R_DEFINE(pid_t, fork)
 {
 	uk_pr_info("Successfully call fork\n");
-	pid_t pid = uk_syscall_r_getpid();
-	kvm_hypercall1(KVM_HC_FORK_VM, pid);
-	return pid;
+	unsigned long long ret = kvm_hypercall0(KVM_HC_FORK_VM);
+	uk_pr_debug("fork returned %llu\n", ret);
+	if (ret & FORK_MASK) {
+		ret -= FORK_MASK;
+		uk_syscall_r_setpid((pid_t)ret);
+		return 0;
+	} else {
+		return (pid_t)ret;
+	}
 }
 /*
 UK_LLSYSCALL_R_DEFINE(pid_t, restore_vm)

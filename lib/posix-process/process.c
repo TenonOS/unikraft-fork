@@ -547,6 +547,15 @@ UK_SYSCALL_R_DEFINE(pid_t, getppid)
 	return pthread_self->process->parent->pid;
 }
 
+UK_SYSCALL_R_DEFINE(int, setpid, pid_t, pid)
+{
+	if (!pthread_self)
+		return -ENOTSUP;
+	UK_ASSERT(pthread_self->process);
+	pthread_self->process->pid = pid;
+	return 1;
+}
+
  /* NOTE: The man pages of _exit(2) say:
   *       "In glibc up to version 2.3, the _exit() wrapper function invoked
   *        the kernel system call of the same name.  Since glibc 2.3, the
