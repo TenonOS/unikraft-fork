@@ -529,16 +529,17 @@ int clone(int (*fn)(void *) __unused, void *sp __unused,
 	return -1;
 }
 #endif /* UK_LIBC_SYSCALLS */
-
-#define FORK_MASK 0x8000000000000000ULL
+#define	GET_BIT(x, bit)	((x & (1ULL << bit)) >> bit)
+#define	CLEAR_BIT(x, bit)	(x &= ~(1ULL << bit))
+#define FORKED_MASK 1ULL < 63
 
 UK_LLSYSCALL_R_DEFINE(pid_t, fork)
 {
 	uk_pr_info("Successfully call fork\n");
 	unsigned long long ret = kvm_hypercall0(KVM_HC_FORK_VM);
 	uk_pr_debug("fork returned %llu\n", ret);
-	if (ret & FORK_MASK) {
-		ret -= FORK_MASK;
+	if (GET_BIT(ret, 63)) {
+		CLEAR_BIT(ret, 63);
 		uk_syscall_r_setpid((pid_t)ret);
 		return 0;
 	} else {
