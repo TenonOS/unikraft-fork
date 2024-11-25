@@ -1467,6 +1467,29 @@ static inline unsigned long bootinfo_to_page_attr(__u16 flags)
 	return prot;
 }
 
+#define X86_CR4_PSE (1<<4)
+
+static inline void write_cr4(unsigned long cr4)
+{
+	asm volatile("mov %0, %%cr4" : : "r"(cr4) : "memory");
+}
+
+#define PML4_INDEX_HELPER(x) ((x >> 39) & (0x1ff))
+
+static void setup_direct_GB_mapping(__pte_t **cus_pgdir, unsigned long map_addr) {
+	// see intel manual about 1G-byte format
+	cus_pgdir[PT_Lx_IDX(map_addr, 2)] = ((0x1<<0) | (0x1<<1) | (0x1<<2) | (0x1<<3) | (0x1<<4) | (0x1<<7) | (PT_Lx_IDX(map_addr, 2) << 30));
+}
+
+static unsigned long read_cr4(void)
+{
+	unsigned long cr4;
+
+	__asm__ __volatile__("mov %%cr4, %0" : "=r"(cr4));
+
+	return cr4;
+}
+
 int ukplat_paging_init(void)
 {
 	struct ukplat_memregion_desc *mrd;
@@ -1527,6 +1550,23 @@ int ukplat_paging_init(void)
 		if (unlikely(rc))
 			return rc;
 	}
+
+	unsigned long cr4 = read_cr4();
+	cr4 |= X86_CR4_PSE;
+	write_cr4(cr4);
+
+	__pte_t lpte, rpte;
+	rc = ukarch_pte_read(kernel_pt.pt_vbase, 3, PT_Lx_IDX(0xfe000000, 3), &lpte);
+	rc = ukarch_pte_read(kernel_pt.pt_vbase, 3, PT_Lx_IDX(0x80000000, 3), &rpte);
+	__vaddr_t *pde_vaddr = pgarch_pt_pte_to_vaddr(NULL, lpte, 4);
+	__vaddr_t *pde_high_vaddr = pgarch_pt_pte_to_vaddr(NULL, rpte, 4);
+	uk_pr_info("vaadr is:%lx pde exists:%d next_index is:%d\n", pde_vaddr, lpte & 0x1, PT_Lx_IDX(0xfe000000, 2));
+	__pte_t **cus_pgdir = (__pte_t **)pde_vaddr;
+	__pte_t **high_pgdir = (__pte_t **)pde_high_vaddr;
+	setup_direct_GB_mapping(cus_pgdir, 0xfe000000);
+	setup_direct_GB_mapping(high_pgdir, 0x80000000);
+
+	uk_pr_info("cr4 value:%lx\n", read_cr4());
 
 	/* Activate page table */
 	rc = ukplat_pt_set_active(&kernel_pt);
