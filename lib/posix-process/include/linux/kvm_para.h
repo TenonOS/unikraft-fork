@@ -1,6 +1,7 @@
 
-#define KVM_HC_FORK_VM 13
-//#define KVM_HC_RESTORE_FORK 14
+#define KVM_HC_FORK_VM         13
+#define KVM_HC_WAIT_VM         14
+#define KVM_HC_KILL_VM         15
 
 static inline long kvm_hypercall0(unsigned int nr)
 {

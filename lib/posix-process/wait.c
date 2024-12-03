@@ -37,6 +37,7 @@
 #include <uk/syscall.h>
 #include <errno.h>
 #include <stddef.h>
+#include <linux/kvm_para.h>
 #include "process.h"
 
 /* FIXME: Provide with sys/wait.h */
@@ -49,7 +50,10 @@ UK_SYSCALL_R_DEFINE(pid_t, wait4, pid_t, pid,
 		    int *, wstatus, int, options,
 		    struct rusage *, rusage)
 {
-	return -ECHILD;
+	if (pid <= 0)
+		return -ECHILD;
+	int ret = kvm_hypercall1(pid);
+	return pid;
 }
 
 UK_SYSCALL_R_DEFINE(int, waitid, idtype_t, idtype, id_t, id,
