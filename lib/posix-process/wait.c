@@ -52,7 +52,7 @@ UK_SYSCALL_R_DEFINE(pid_t, wait4, pid_t, pid,
 {
 	if (pid <= 0)
 		return -ECHILD;
-	int ret = kvm_hypercall1(pid);
+	int ret = kvm_hypercall1(KVM_HC_WAIT_VM, pid);
 	return pid;
 }
 
