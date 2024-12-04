@@ -56,6 +56,7 @@
 #endif /* CONFIG_LIBPOSIX_PROCESS_CLONE */
 
 #include "process.h"
+#include <linux/kvm_para.h>
 
 /**
  * Internal structures
