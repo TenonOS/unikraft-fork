@@ -568,14 +568,16 @@ UK_SYSCALL_R_DEFINE(int, setpid, pid_t, pid)
   */
 UK_LLSYSCALL_R_DEFINE(int, exit, int, status)
 {
-	uk_sched_thread_exit(); /* won't return */
+	// uk_sched_thread_exit(); /* won't return */
+	int ret = kvm_hypercall0(KVM_HC_EXIT_VM);
 	UK_CRASH("sys_exit() unexpectedly returned\n");
 	return -EFAULT;
 }
 
 UK_LLSYSCALL_R_DEFINE(int, exit_group, int, status)
 {
-	uk_posix_process_kill(uk_thread_current()); /* won't return */
+	int ret = kvm_hypercall0(KVM_HC_EXIT_VM);
+	// uk_posix_process_kill(uk_thread_current()); /* won't return */
 	UK_CRASH("sys_exit_group() unexpectedly returned\n");
 	return -EFAULT;
 }

@@ -52,8 +52,9 @@ UK_SYSCALL_R_DEFINE(pid_t, wait4, pid_t, pid,
 {
 	if (pid <= 0)
 		return -ECHILD;
+	uk_pr_debug("enter wait hypercall %d\n", KVM_HC_WAIT_VM);
 	int ret = kvm_hypercall1(KVM_HC_WAIT_VM, pid);
-	return pid;
+	return ret;
 }
 
 UK_SYSCALL_R_DEFINE(int, waitid, idtype_t, idtype, id_t, id,
